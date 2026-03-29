@@ -1,5 +1,7 @@
 # Yield Ledger
 
+中文 | [English](README.en.md)
+
 息流账本，一个面向长期现金流投资者的开源股息研究与持仓跟踪工具，支持 A 股、港股、美股的持仓录入、股息缓存与组合汇总。
 
 ## 技术栈
@@ -46,12 +48,14 @@
 ├─ Dockerfile
 ├─ docker-compose.yml
 ├─ .env.example
-└─ README.md
+├─ start
+├─ README.md
+└─ README.en.md
 ```
 
 ## 数据库表结构
 
-完整建表 SQL 见 [backend/schema.sql](/Users/kaiqizhuang/股息/backend/schema.sql)。
+完整建表 SQL 见 [backend/schema.sql](backend/schema.sql)。
 
 核心表：
 
