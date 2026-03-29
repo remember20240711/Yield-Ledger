@@ -132,6 +132,12 @@ cp .env.example .env
 docker compose up -d --build
 ```
 
+## iOS 客户端（本地版）
+
+- 工程路径：`ios/YieldLedgerIOS.xcodeproj`
+- 详细说明：`ios/README.md`
+- 特性：不依赖自建服务器，持仓与交易本地持久化；启动/回前台刷新股价
+
 ## 常用配置
 
 `.env` 支持以下关键配置：

@@ -1,0 +1,25 @@
+name: YieldLedgerIOS
+options:
+  minimumXcodeGenVersion: 2.38.0
+settings:
+  base:
+    PRODUCT_NAME: Yield Ledger
+targets:
+  YieldLedgerIOS:
+    type: application
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - path: YieldLedgerIOS
+    info:
+      path: YieldLedgerIOS/Info.plist
+      properties:
+        CFBundleDisplayName: Yield Ledger
+        UILaunchScreen: {}
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.remember20240711.yieldledger.ios
+        SWIFT_VERSION: 6.0
+        TARGETED_DEVICE_FAMILY: "1,2"
+        CODE_SIGN_STYLE: Automatic
+

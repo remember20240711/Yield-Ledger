@@ -132,6 +132,12 @@ cp .env.example .env
 docker compose up -d --build
 ```
 
+## iOS Client (Local-first)
+
+- Project path: `ios/YieldLedgerIOS.xcodeproj`
+- Guide: `ios/README.md`
+- Behavior: no self-hosted backend required; holdings/trades persisted locally; quotes refresh on app launch and foreground
+
 ## Common Config
 
 Supported keys in `.env`:
@@ -157,4 +163,3 @@ Supported keys in `.env`:
 - `GET /api/portfolio/export.xlsx`
 - `POST /api/portfolio/import`
 - `DELETE /api/stocks/{id}`
-
