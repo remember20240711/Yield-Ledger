@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# 一键启动入口：自动准备配置、启动容器，并尝试打开浏览器。
+ROOT_DIR="$(cd "$(dirname "$0")" && pwd)"
+cd "$ROOT_DIR"
+
+if ! command -v docker >/dev/null 2>&1; then
+  echo "未检测到 docker，请先安装 Docker Desktop / Docker Engine。"
+  exit 1
+fi
+
+if docker compose version >/dev/null 2>&1; then
+  COMPOSE_CMD=(docker compose)
+elif command -v docker-compose >/dev/null 2>&1; then
+  COMPOSE_CMD=(docker-compose)
+else
+  echo "未检测到 docker compose，请安装后重试。"
+  exit 1
+fi
+
+if [[ ! -f .env ]]; then
+  cp .env.example .env
+  echo "已根据 .env.example 创建 .env"
+fi
+
+mkdir -p data
+
+echo "正在启动服务..."
+"${COMPOSE_CMD[@]}" up -d --build
+
+URL="${YIELD_LEDGER_URL:-http://127.0.0.1:8000}"
+echo "服务已启动：${URL}"
+
+# 桌面环境下自动打开浏览器；服务器环境会自动跳过。
+if command -v open >/dev/null 2>&1; then
+  open "${URL}" >/dev/null 2>&1 || true
+elif command -v xdg-open >/dev/null 2>&1; then
+  xdg-open "${URL}" >/dev/null 2>&1 || true
+fi
+

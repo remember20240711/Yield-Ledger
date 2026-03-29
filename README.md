@@ -107,22 +107,25 @@ npm run dev
 
 ## Docker 部署
 
-1. 创建环境文件：
+1. 一键启动（推荐）：
+
+```bash
+chmod +x ./start
+./start
+```
+
+执行后会自动：
+
+- 检查 `docker compose` 可用性
+- 首次自动创建 `.env`
+- 启动容器
+- 在桌面环境自动打开 `http://127.0.0.1:8000`
+
+2. 手动方式（可选）：
 
 ```bash
 cp .env.example .env
-```
-
-2. 启动服务：
-
-```bash
-docker-compose up -d --build
-```
-
-3. 打开浏览器：
-
-```text
-http://<你的主机IP>:8000
+docker compose up -d --build
 ```
 
 ## 常用配置
