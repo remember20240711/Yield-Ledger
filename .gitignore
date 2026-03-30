@@ -9,5 +9,4 @@ backend/app/static/
 data/*.db
 data/*.sqlite
 data/*.sqlite3
-ios-app/**/*.xcuserdata/
-ios-app/**/DerivedData/
+ios-app/

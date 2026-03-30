@@ -6,10 +6,9 @@ Yield Ledger is an open-source dividend research and portfolio tracking tool for
 
 ## Which Version Is This
 
-This repository currently contains 2 product lines:
+This repository currently contains only 1 product line:
 
 - `Web self-hosted edition`: the main edition and the default recommendation for this repository. It is built with `Vue 3 + FastAPI + SQLite`, runs via `Docker Compose`, and is suitable for personal computers, mini PCs, NAS, and PVE LXC/VM deployments.
-- `iOS local-first edition`: located under `ios-app/`. It is a standalone local client and does not require your own backend server.
 
 If you downloaded this project from GitHub and want to use it in a browser, you should use:
 
@@ -25,7 +24,6 @@ This is the most complete and publicly usable edition in the repo today.
 
 - If you want the quickest setup and can install Docker: use `Web self-hosted edition`
 - If you want to deploy on PVE, NAS, or a mini server: use `Web self-hosted edition`
-- If you want a fully local iPhone/iPad workflow with no server: use the `iOS local-first edition` under `ios-app/`
 
 ## Key Features
 
@@ -247,18 +245,6 @@ npm run dev
 
 The frontend dev server proxies `/api` to `http://localhost:8000`.
 
-## iOS Local-First Edition
-
-- Project path: `ios-app/YieldLedgerIOS.xcodeproj`
-- Guide: `ios-app/README.md`
-- Behavior: no self-hosted backend required; holdings and transactions are persisted locally; quotes refresh on launch / foreground
-
-If you specifically want a no-Docker, no-server, pure client experience, use:
-
-- `ios-app/`
-
-The current Web edition is not yet a packaged desktop app.
-
 ## Project Structure
 
 ```text
@@ -292,7 +278,6 @@ The current Web edition is not yet a packaged desktop app.
 │  ├─ tsconfig.json
 │  └─ vite.config.ts
 ├─ data/
-├─ ios-app/
 ├─ deploy/
 ├─ Dockerfile
 ├─ docker-compose.yml

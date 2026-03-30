@@ -6,10 +6,9 @@
 
 ## 这是什么版本
 
-这个仓库当前包含 2 条产品线：
+这个仓库当前只包含 1 条产品线：
 
 - `Web 自托管版`：主版本，也是本仓库默认推荐版本。技术栈是 `Vue 3 + FastAPI + SQLite`，通过 `Docker Compose` 启动，适合放在个人电脑、小主机、NAS、PVE LXC/VM 上长期运行。
-- `iOS 本地版`：位于 `ios-app/`，是一个独立的本地优先客户端，不依赖你自建服务器，适合只在 iPhone / iPad 上使用。
 
 如果你是从 GitHub 下载项目，并且想在浏览器里使用，那么你应该使用：
 
@@ -25,7 +24,6 @@
 
 - 想要最快开始，且能接受先安装 Docker：使用 `Web 自托管版`
 - 想部署到 PVE、NAS、小主机，长期运行：使用 `Web 自托管版`
-- 想完全不依赖服务器，只在 iPhone 本地使用：使用 `ios-app/` 里的 `iOS 本地版`
 
 ## 核心功能
 
@@ -247,18 +245,6 @@ npm run dev
 
 前端开发环境会把 `/api` 代理到 `http://localhost:8000`。
 
-## iOS 本地版
-
-- 工程路径：`ios-app/YieldLedgerIOS.xcodeproj`
-- 详细说明：`ios-app/README.md`
-- 特性：不依赖自建服务器，持仓与交易本地持久化；启动 / 回前台刷新股价
-
-如果你要的是“完全不装 Docker、不跑服务器、纯客户端下载即用”，那么请使用：
-
-- `ios-app/`
-
-当前 Web 版本还不是免环境的桌面打包版。
-
 ## 项目目录结构
 
 ```text
@@ -292,7 +278,6 @@ npm run dev
 │  ├─ tsconfig.json
 │  └─ vite.config.ts
 ├─ data/
-├─ ios-app/
 ├─ deploy/
 ├─ Dockerfile
 ├─ docker-compose.yml
