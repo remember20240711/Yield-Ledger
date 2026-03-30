@@ -15,6 +15,8 @@ class StockCatalog(Base):
     symbol: Mapped[str] = mapped_column(String(32), nullable=False, index=True)
     normalized_symbol: Mapped[str] = mapped_column(String(32), nullable=False, unique=True, index=True)
     name: Mapped[str] = mapped_column(String(128), nullable=False, index=True)
+    pinyin_full: Mapped[Optional[str]] = mapped_column(String(256), nullable=True, index=True)
+    pinyin_initials: Mapped[Optional[str]] = mapped_column(String(64), nullable=True, index=True)
     market: Mapped[str] = mapped_column(String(8), nullable=False, index=True)
     currency: Mapped[str] = mapped_column(String(8), nullable=False)
     last_price: Mapped[Optional[float]] = mapped_column(Numeric(18, 4), nullable=True)

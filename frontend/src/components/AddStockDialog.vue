@@ -177,7 +177,7 @@ async function onSubmit() {
           :trigger-on-focus="false"
           :debounce="180"
           :fit-input-width="true"
-          placeholder="例如：招商银行 / 600036"
+          placeholder="例如：招商银行 / 600036 / zsyh"
           clearable
           style="width: 100%"
           @input="handleSecurityInput"
@@ -201,7 +201,7 @@ async function onSubmit() {
             </el-icon>
           </template>
         </el-autocomplete>
-        <div class="field-hint">输入名称或代码，从本地缓存候选里点选即可。</div>
+        <div class="field-hint">输入名称、代码或拼音首字母，从本地缓存候选里点选即可。</div>
       </el-form-item>
       <el-form-item label="首次建仓日期" prop="trade_date">
         <el-date-picker v-model="form.trade_date" type="date" value-format="YYYY-MM-DD" style="width: 100%" />

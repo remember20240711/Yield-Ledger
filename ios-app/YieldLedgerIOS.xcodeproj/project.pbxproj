@@ -9,33 +9,47 @@
 /* Begin PBXBuildFile section */
 		0FCDA7B885AA2142E859D8EC /* PortfolioMath.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C1B264C23283BDB17FDD3EA /* PortfolioMath.swift */; };
 		37037BD128B15ADA16692556 /* Formatters.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24C74E787B58673AA636CB0A /* Formatters.swift */; };
+		3BEE4CB37A7D1A21053F388A /* StockCatalog.json in Resources */ = {isa = PBXBuildFile; fileRef = F484BD1453C34DD2C1B11871 /* StockCatalog.json */; };
 		429AE20EBF087E7B9FB4E32D /* QuoteService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C840B5B588AE3FB2650610E5 /* QuoteService.swift */; };
 		4E085F59784678C30632F9C4 /* AddHoldingSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6BB088FEEDD3DD4A1D5D5F3 /* AddHoldingSheet.swift */; };
 		5D48384638EEC29A096BE36A /* HoldingRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF0B11B81B87948933B59CCD /* HoldingRowView.swift */; };
+		62661C1417F8BCB48D12EE2C /* TransactionsSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 176BA16468A2C9646743F53A /* TransactionsSheet.swift */; };
+		7AA1C0E2FDB1DF639B51E0F0 /* DividendDetailSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8DBF37A3A0C6AAC61BF5A59 /* DividendDetailSheet.swift */; };
 		8A57A023FACADB5E85EF0ED0 /* RootPortfolioView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAB72767A88E163DF29C8241 /* RootPortfolioView.swift */; };
 		8FB774B9DF7AD776DBC15A9D /* PortfolioViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1DE70B3ACD28687CEC85E38E /* PortfolioViewModel.swift */; };
 		90BBFAF9076D0AED57BF4DE3 /* YieldLedgerIOSApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 97957FD5B7FD35B5E0857B3B /* YieldLedgerIOSApp.swift */; };
+		9E8EE9EF9E58DF2E5EA71060 /* CompactHoldingRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 799636D4580403DB0F6DB0B7 /* CompactHoldingRow.swift */; };
+		A651720604C968E2ED015AD5 /* SummaryHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4234EB75A5119EB7D1764487 /* SummaryHeaderView.swift */; };
+		AD9DF90D21D50C42B32B5CA2 /* SoldHoldingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3A3968134D9126A54361019 /* SoldHoldingsView.swift */; };
 		AE90F0F2712048A05A6850D2 /* TradeSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B879D2C862D5B52630DE9AC /* TradeSheet.swift */; };
 		AF2160C6F878CFA096279DF8 /* PortfolioModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2E76E2483100E65E11FA37E /* PortfolioModels.swift */; };
+		B66E87257958A665AAD9FCC6 /* StockCatalogService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A45C7BB0CC7D321F514FE492 /* StockCatalogService.swift */; };
 		C0F615DA2908B4B28DE86579 /* PortfolioService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27F028D33F6096B8BD84D938 /* PortfolioService.swift */; };
 		E099AB1FAC07EAFFE8B65377 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 228CBF18446B2167D00A53C8 /* ContentView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		176BA16468A2C9646743F53A /* TransactionsSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransactionsSheet.swift; sourceTree = "<group>"; };
 		1DE70B3ACD28687CEC85E38E /* PortfolioViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PortfolioViewModel.swift; sourceTree = "<group>"; };
 		1FA34CBBD66E69A7E47713A9 /* YieldLedgerIOS.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = YieldLedgerIOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		228CBF18446B2167D00A53C8 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		24C74E787B58673AA636CB0A /* Formatters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Formatters.swift; sourceTree = "<group>"; };
 		27F028D33F6096B8BD84D938 /* PortfolioService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PortfolioService.swift; sourceTree = "<group>"; };
+		4234EB75A5119EB7D1764487 /* SummaryHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SummaryHeaderView.swift; sourceTree = "<group>"; };
+		799636D4580403DB0F6DB0B7 /* CompactHoldingRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompactHoldingRow.swift; sourceTree = "<group>"; };
 		8B879D2C862D5B52630DE9AC /* TradeSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TradeSheet.swift; sourceTree = "<group>"; };
 		8C1B264C23283BDB17FDD3EA /* PortfolioMath.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PortfolioMath.swift; sourceTree = "<group>"; };
 		97957FD5B7FD35B5E0857B3B /* YieldLedgerIOSApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YieldLedgerIOSApp.swift; sourceTree = "<group>"; };
 		9AB7FCABF01E50367F77C4A7 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		A45C7BB0CC7D321F514FE492 /* StockCatalogService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StockCatalogService.swift; sourceTree = "<group>"; };
 		B2E76E2483100E65E11FA37E /* PortfolioModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PortfolioModels.swift; sourceTree = "<group>"; };
 		B6BB088FEEDD3DD4A1D5D5F3 /* AddHoldingSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddHoldingSheet.swift; sourceTree = "<group>"; };
 		C840B5B588AE3FB2650610E5 /* QuoteService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuoteService.swift; sourceTree = "<group>"; };
 		CAB72767A88E163DF29C8241 /* RootPortfolioView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootPortfolioView.swift; sourceTree = "<group>"; };
 		DF0B11B81B87948933B59CCD /* HoldingRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HoldingRowView.swift; sourceTree = "<group>"; };
+		E3A3968134D9126A54361019 /* SoldHoldingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SoldHoldingsView.swift; sourceTree = "<group>"; };
+		F484BD1453C34DD2C1B11871 /* StockCatalog.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = StockCatalog.json; sourceTree = "<group>"; };
+		F8DBF37A3A0C6AAC61BF5A59 /* DividendDetailSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DividendDetailSheet.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -55,13 +69,26 @@
 			path = Models;
 			sourceTree = "<group>";
 		};
+		3DCCA254FCB0A96429B0975A /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				F484BD1453C34DD2C1B11871 /* StockCatalog.json */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
 		4D885B9E491B1787E09746E6 /* Views */ = {
 			isa = PBXGroup;
 			children = (
 				B6BB088FEEDD3DD4A1D5D5F3 /* AddHoldingSheet.swift */,
+				799636D4580403DB0F6DB0B7 /* CompactHoldingRow.swift */,
 				228CBF18446B2167D00A53C8 /* ContentView.swift */,
+				F8DBF37A3A0C6AAC61BF5A59 /* DividendDetailSheet.swift */,
 				DF0B11B81B87948933B59CCD /* HoldingRowView.swift */,
+				E3A3968134D9126A54361019 /* SoldHoldingsView.swift */,
+				4234EB75A5119EB7D1764487 /* SummaryHeaderView.swift */,
 				8B879D2C862D5B52630DE9AC /* TradeSheet.swift */,
+				176BA16468A2C9646743F53A /* TransactionsSheet.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -96,6 +123,7 @@
 				9AB7FCABF01E50367F77C4A7 /* Info.plist */,
 				E6E640D420C4EDA8FFDD7610 /* App */,
 				010E384A4B17CFA93DFBC1F4 /* Models */,
+				3DCCA254FCB0A96429B0975A /* Resources */,
 				F285E5092032EE243FA04F6D /* Services */,
 				6A677A10B44F055BAC437523 /* Utilities */,
 				00FBEAE57137AEE0F32A01E6 /* ViewModels */,
@@ -119,6 +147,7 @@
 				8C1B264C23283BDB17FDD3EA /* PortfolioMath.swift */,
 				27F028D33F6096B8BD84D938 /* PortfolioService.swift */,
 				C840B5B588AE3FB2650610E5 /* QuoteService.swift */,
+				A45C7BB0CC7D321F514FE492 /* StockCatalogService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -131,6 +160,7 @@
 			buildConfigurationList = BC7DEF7DB5C4535FBC10F336 /* Build configuration list for PBXNativeTarget "YieldLedgerIOS" */;
 			buildPhases = (
 				8E5831F066AEAB3DBEE64BE5 /* Sources */,
+				C4D7BC116481530102683174 /* Resources */,
 			);
 			buildRules = (
 			);
@@ -176,13 +206,26 @@
 		};
 /* End PBXProject section */
 
+/* Begin PBXResourcesBuildPhase section */
+		C4D7BC116481530102683174 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3BEE4CB37A7D1A21053F388A /* StockCatalog.json in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		8E5831F066AEAB3DBEE64BE5 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 				4E085F59784678C30632F9C4 /* AddHoldingSheet.swift in Sources */,
+				9E8EE9EF9E58DF2E5EA71060 /* CompactHoldingRow.swift in Sources */,
 				E099AB1FAC07EAFFE8B65377 /* ContentView.swift in Sources */,
+				7AA1C0E2FDB1DF639B51E0F0 /* DividendDetailSheet.swift in Sources */,
 				37037BD128B15ADA16692556 /* Formatters.swift in Sources */,
 				5D48384638EEC29A096BE36A /* HoldingRowView.swift in Sources */,
 				0FCDA7B885AA2142E859D8EC /* PortfolioMath.swift in Sources */,
@@ -191,7 +234,11 @@
 				8FB774B9DF7AD776DBC15A9D /* PortfolioViewModel.swift in Sources */,
 				429AE20EBF087E7B9FB4E32D /* QuoteService.swift in Sources */,
 				8A57A023FACADB5E85EF0ED0 /* RootPortfolioView.swift in Sources */,
+				AD9DF90D21D50C42B32B5CA2 /* SoldHoldingsView.swift in Sources */,
+				B66E87257958A665AAD9FCC6 /* StockCatalogService.swift in Sources */,
+				A651720604C968E2ED015AD5 /* SummaryHeaderView.swift in Sources */,
 				AE90F0F2712048A05A6850D2 /* TradeSheet.swift in Sources */,
+				62661C1417F8BCB48D12EE2C /* TransactionsSheet.swift in Sources */,
 				90BBFAF9076D0AED57BF4DE3 /* YieldLedgerIOSApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

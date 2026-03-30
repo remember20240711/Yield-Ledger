@@ -1,0 +1,5 @@
+services:
+  yield-ledger:
+    build:
+      context: .
+      dockerfile: Dockerfile.pve

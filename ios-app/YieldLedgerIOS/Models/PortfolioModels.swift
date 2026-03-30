@@ -44,6 +44,15 @@ final class Holding {
     @Relationship(deleteRule: .cascade, inverse: \Trade.holding)
     var trades: [Trade] = []
 
+    // 股息缓存：首次联网后持久化，后续启动可立即展示。
+    var dividendTTM: Double?
+    var dividendCurrentYield: Double?
+    var dividendFiveYearAvgYield: Double?
+    var dividendTenYearAvgYield: Double?
+    var dividendYearlyData: Data?
+    var dividendQuarterlyData: Data?
+    var dividendCachedAt: Date?
+
     init(symbol: String, name: String, market: MarketType, currency: String) {
         self.symbol = symbol.uppercased()
         self.name = name
@@ -67,13 +76,13 @@ final class Trade {
     var id: UUID
     var typeRaw: String
     var tradeDate: Date
-    var shares: Int
+    var shares: Double
     var price: Double
     var createdAt: Date
 
     var holding: Holding?
 
-    init(type: TradeType, tradeDate: Date, shares: Int, price: Double, holding: Holding) {
+    init(type: TradeType, tradeDate: Date, shares: Double, price: Double, holding: Holding) {
         self.id = UUID()
         self.typeRaw = type.rawValue
         self.tradeDate = tradeDate
@@ -91,7 +100,7 @@ final class Trade {
 
 // 持仓快照：把交易记录计算成可直接渲染的统计值。
 struct HoldingSnapshot {
-    let shareCount: Int
+    let shareCount: Double
     let averageCost: Double
     let totalCost: Double
     let marketValue: Double

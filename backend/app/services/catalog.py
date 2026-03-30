@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal
+import re
 from typing import Optional
 
 import pandas as pd
@@ -19,12 +20,20 @@ try:
 except Exception:  # pragma: no cover - runtime dependency fallback
     ak = None
 
+try:
+    from pypinyin import Style, lazy_pinyin
+except Exception:  # pragma: no cover - runtime dependency fallback
+    Style = None
+    lazy_pinyin = None
+
 
 @dataclass
 class CatalogItem:
     symbol: str
     normalized_symbol: str
     name: str
+    pinyin_full: Optional[str]
+    pinyin_initials: Optional[str]
     market: str
     currency: str
     last_price: Optional[Decimal]
@@ -42,6 +51,38 @@ class StockCatalogService:
                 return candidate
         return None
 
+    @staticmethod
+    def _normalize_search_text(value: str) -> str:
+        # 搜索索引统一转成小写字母数字，便于代码、全拼和首字母共用比较逻辑。
+        return re.sub(r"[^a-z0-9]+", "", value.lower())
+
+    def _build_search_keys(self, name: str) -> tuple[Optional[str], Optional[str]]:
+        # 中文名称优先生成全拼和首字母，英文名称则退化为单词拼接和缩写。
+        normalized_name = str(name).strip()
+        if not normalized_name:
+            return None, None
+
+        if lazy_pinyin is not None and Style is not None:
+            try:
+                full = self._normalize_search_text(
+                    "".join(lazy_pinyin(normalized_name, style=Style.NORMAL, errors=lambda value: list(value)))
+                )
+                initials = self._normalize_search_text(
+                    "".join(lazy_pinyin(normalized_name, style=Style.FIRST_LETTER, errors=lambda value: list(value)))
+                )
+                if full or initials:
+                    return full or None, initials or None
+            except Exception:
+                pass
+
+        parts = re.findall(r"[A-Za-z0-9]+", normalized_name)
+        if not parts:
+            fallback = self._normalize_search_text(normalized_name)
+            return fallback or None, fallback[:16] or None
+        full = self._normalize_search_text("".join(parts))
+        initials = self._normalize_search_text("".join(part[0] for part in parts if part))
+        return full or None, initials or None
+
     def _append_item(
         self,
         items: list[CatalogItem],
@@ -58,11 +99,14 @@ class StockCatalogService:
         resolved = self.market_resolver.resolve(symbol)
         if resolved.normalized_symbol in seen:
             return
+        pinyin_full, pinyin_initials = self._build_search_keys(str(name).strip())
         items.append(
             CatalogItem(
                 symbol=symbol,
                 normalized_symbol=resolved.normalized_symbol,
                 name=str(name).strip(),
+                pinyin_full=pinyin_full,
+                pinyin_initials=pinyin_initials,
                 market=market,
                 currency=currency,
                 last_price=price(last_price) if last_price not in (None, "", "-") else None,
@@ -180,6 +224,8 @@ class StockCatalogService:
                     symbol=item.symbol,
                     normalized_symbol=item.normalized_symbol,
                     name=item.name,
+                    pinyin_full=item.pinyin_full,
+                    pinyin_initials=item.pinyin_initials,
                     market=item.market,
                     currency=item.currency,
                     last_price=item.last_price,
@@ -197,6 +243,21 @@ class StockCatalogService:
             latest_updated_at = latest_updated_at.replace(tzinfo=timezone.utc)
         return datetime.now(timezone.utc) - latest_updated_at > self.cache_ttl
 
+    def ensure_search_keys(self, db: Session) -> int:
+        # 历史库升级后补齐拼音索引，这样不等下次全量刷新也能立刻搜索。
+        catalog_items = db.scalars(select(StockCatalog)).all()
+        updated = 0
+        for item in catalog_items:
+            full, initials = self._build_search_keys(item.name)
+            if item.pinyin_full == full and item.pinyin_initials == initials:
+                continue
+            item.pinyin_full = full
+            item.pinyin_initials = initials
+            updated += 1
+        if updated:
+            db.commit()
+        return updated
+
     def search(self, db: Session, query: str, limit: int = 20) -> list[dict]:
         # 搜索阶段不联网，只在本地缓存里模糊匹配。
         keyword = query.strip()
@@ -207,15 +268,22 @@ class StockCatalogService:
             return []
 
         lower_keyword = keyword.lower()
+        normalized_keyword = self._normalize_search_text(keyword)
+        filters = [
+            func.lower(StockCatalog.name).like(f"%{lower_keyword}%"),
+            func.lower(StockCatalog.symbol).like(f"%{lower_keyword}%"),
+            func.lower(StockCatalog.normalized_symbol).like(f"%{lower_keyword}%"),
+        ]
+        if normalized_keyword:
+            filters.extend(
+                [
+                    func.lower(func.coalesce(StockCatalog.pinyin_full, "")).like(f"%{normalized_keyword}%"),
+                    func.lower(func.coalesce(StockCatalog.pinyin_initials, "")).like(f"%{normalized_keyword}%"),
+                ]
+            )
         candidates = db.scalars(
             select(StockCatalog)
-            .where(
-                or_(
-                    func.lower(StockCatalog.name).like(f"%{lower_keyword}%"),
-                    func.lower(StockCatalog.symbol).like(f"%{lower_keyword}%"),
-                    func.lower(StockCatalog.normalized_symbol).like(f"%{lower_keyword}%"),
-                )
-            )
+            .where(or_(*filters))
             .limit(200)
         ).all()
 
@@ -225,18 +293,32 @@ class StockCatalogService:
             symbol_upper = item.normalized_symbol.upper()
             short_upper = item.symbol.upper()
             name_upper = item.name.upper()
+            pinyin_full = (item.pinyin_full or "").lower()
+            pinyin_initials = (item.pinyin_initials or "").lower()
 
             if symbol_upper == query_upper or short_upper == query_upper:
                 score = (0, len(symbol_upper), item.normalized_symbol)
+            elif normalized_keyword and pinyin_initials == normalized_keyword:
+                score = (1, len(pinyin_initials), item.normalized_symbol)
+            elif normalized_keyword and pinyin_full == normalized_keyword:
+                score = (2, len(pinyin_full), item.normalized_symbol)
             elif symbol_upper.startswith(query_upper) or short_upper.startswith(query_upper):
-                score = (1, len(symbol_upper), item.normalized_symbol)
+                score = (3, len(symbol_upper), item.normalized_symbol)
+            elif normalized_keyword and pinyin_initials.startswith(normalized_keyword):
+                score = (4, len(pinyin_initials), item.normalized_symbol)
+            elif normalized_keyword and pinyin_full.startswith(normalized_keyword):
+                score = (5, len(pinyin_full), item.normalized_symbol)
             elif name_upper.startswith(query_upper):
-                score = (2, len(item.name), item.normalized_symbol)
+                score = (6, len(item.name), item.normalized_symbol)
             elif query_upper in name_upper:
-                score = (3, name_upper.find(query_upper), item.normalized_symbol)
+                score = (7, name_upper.find(query_upper), item.normalized_symbol)
+            elif normalized_keyword and normalized_keyword in pinyin_initials:
+                score = (8, pinyin_initials.find(normalized_keyword), item.normalized_symbol)
+            elif normalized_keyword and normalized_keyword in pinyin_full:
+                score = (9, pinyin_full.find(normalized_keyword), item.normalized_symbol)
             else:
                 symbol_pos = symbol_upper.find(query_upper)
-                score = (4, symbol_pos if symbol_pos >= 0 else 999, item.normalized_symbol)
+                score = (10, symbol_pos if symbol_pos >= 0 else 999, item.normalized_symbol)
 
             scored.append((score, item))
 

@@ -20,6 +20,7 @@ SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False, futu
 
 def init_db() -> None:
     from app.models import dividend, income_score, stock, stock_catalog, transaction  # noqa: F401
+    from app.services.catalog import stock_catalog_service
 
     # 建表之外，顺手兼容历史版本的缺列和缺索引问题。
     Base.metadata.create_all(bind=engine)
@@ -38,6 +39,10 @@ def init_db() -> None:
         }
         if "last_price" not in catalog_columns:
             connection.execute(text("ALTER TABLE stock_catalog ADD COLUMN last_price NUMERIC(18, 4)"))
+        if "pinyin_full" not in catalog_columns:
+            connection.execute(text("ALTER TABLE stock_catalog ADD COLUMN pinyin_full VARCHAR(256)"))
+        if "pinyin_initials" not in catalog_columns:
+            connection.execute(text("ALTER TABLE stock_catalog ADD COLUMN pinyin_initials VARCHAR(64)"))
         connection.execute(
             text(
                 """
@@ -107,6 +112,29 @@ def init_db() -> None:
                 """
             )
         )
+        connection.execute(
+            text(
+                """
+                CREATE INDEX IF NOT EXISTS ix_stock_catalog_pinyin_full
+                ON stock_catalog (pinyin_full)
+                """
+            )
+        )
+        connection.execute(
+            text(
+                """
+                CREATE INDEX IF NOT EXISTS ix_stock_catalog_pinyin_initials
+                ON stock_catalog (pinyin_initials)
+                """
+            )
+        )
+
+    # 历史目录库在启动时补齐拼音搜索键，避免必须等下一次全量刷新。
+    db = SessionLocal()
+    try:
+        stock_catalog_service.ensure_search_keys(db)
+    finally:
+        db.close()
 
 
 def get_db() -> Generator[Session, None, None]:

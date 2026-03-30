@@ -10,7 +10,7 @@ enum PortfolioMath {
             return lhs.tradeDate < rhs.tradeDate
         }
 
-        var totalShares = 0
+        var totalShares = 0.0
         var totalCost = 0.0
 
         for trade in orderedTrades {
@@ -19,23 +19,24 @@ enum PortfolioMath {
             switch trade.type {
             case .buy:
                 totalShares += shares
-                totalCost += Double(shares) * price
+                totalCost += shares * price
             case .sell:
                 guard totalShares > 0 else { continue }
                 let sellShares = min(shares, totalShares)
-                let averageCost = totalShares > 0 ? totalCost / Double(totalShares) : 0
-                totalCost -= averageCost * Double(sellShares)
+                let averageCost = totalCost / totalShares
+                totalCost -= averageCost * sellShares
                 totalShares -= sellShares
-                if totalShares == 0 {
+                if totalShares <= 0 {
+                    totalShares = 0
                     totalCost = 0
                 }
             }
         }
 
         let safeLatestPrice = max(0, latestPrice ?? 0)
-        let marketValue = safeLatestPrice * Double(totalShares)
+        let marketValue = safeLatestPrice * totalShares
         let profitLoss = marketValue - totalCost
-        let averageCost = totalShares > 0 ? totalCost / Double(totalShares) : 0
+        let averageCost = totalShares > 0 ? totalCost / totalShares : 0
 
         return HoldingSnapshot(
             shareCount: totalShares,
@@ -46,4 +47,3 @@ enum PortfolioMath {
         )
     }
 }
-
