@@ -4,6 +4,7 @@ from dataclasses import dataclass
 import logging
 from datetime import datetime, timezone
 from decimal import Decimal
+import re
 from typing import Any, Optional, Tuple
 
 import pandas as pd
@@ -61,6 +62,13 @@ class MarketSnapshot:
     annual_dividends: list[AnnualDividend]
 
 
+@dataclass
+class DividendFallbackEstimate:
+    latest_dividend_ttm: Decimal
+    current_dividend_yield: Decimal
+    source: str
+
+
 class YahooFinanceProvider:
     def _load_history(self, resolved: ResolvedSymbol, period: str) -> pd.DataFrame:
         # 分红和价格都依赖历史序列，这里统一做基础清洗。
@@ -96,7 +104,7 @@ class YahooFinanceProvider:
         for year in sorted(set(annual_close_series.index.tolist()) | set(annual_dividend_series.index.tolist())):
             dividend_per_share = price(annual_dividend_series.get(year, 0))
             close_price = price(annual_close_series.get(year, 0))
-            if dividend_per_share <= 0 and close_price <= 0:
+            if dividend_per_share <= 0:
                 continue
             dividend_yield = pct((dividend_per_share / close_price) * 100 if close_price > 0 else 0)
             annual_records.append(
@@ -190,6 +198,142 @@ class AkshareChinaProvider:
 
         return name, current_price
 
+    @staticmethod
+    def _parse_cn_fund_quarter_label(label: Any) -> tuple[int, int]:
+        match = re.search(r"(\d{4})年(\d)季度", str(label))
+        if not match:
+            return 0, 0
+        return int(match.group(1)), int(match.group(2))
+
+    def _load_latest_etf_holdings(self, fund_code: str) -> tuple[Optional[pd.DataFrame], Optional[str]]:
+        if ak is None:
+            return None, None
+
+        current_year = datetime.now(timezone.utc).year
+        for year in range(current_year, current_year - 3, -1):
+            try:
+                frame = ak.fund_portfolio_hold_em(symbol=fund_code, date=str(year))
+            except Exception:
+                continue
+            if frame is None or frame.empty or "季度" not in frame.columns:
+                continue
+
+            labels = [label for label in frame["季度"].dropna().astype(str).unique().tolist() if label]
+            if not labels:
+                continue
+            latest_label = max(labels, key=self._parse_cn_fund_quarter_label)
+            latest = frame[frame["季度"].astype(str) == latest_label].copy()
+            if latest.empty:
+                continue
+            return latest, latest_label
+        return None, None
+
+    def estimate_etf_dividend_from_holdings(
+        self,
+        resolved: ResolvedSymbol,
+        current_price: Optional[Decimal],
+    ) -> Optional[DividendFallbackEstimate]:
+        if ak is None or current_price is None or current_price <= 0:
+            return None
+
+        fund_code = resolved.normalized_symbol.split(".")[0]
+        holdings, quarter_label = self._load_latest_etf_holdings(fund_code)
+        if holdings is None or holdings.empty or quarter_label is None:
+            return None
+
+        if "占净值比例" not in holdings.columns or "股票代码" not in holdings.columns:
+            return None
+
+        holdings["weight"] = pd.to_numeric(holdings["占净值比例"], errors="coerce").fillna(0.0)
+        holdings["stock_code"] = holdings["股票代码"].astype(str).str.extract(r"(\d{6})", expand=False)
+        holdings = holdings[(holdings["weight"] > 0) & holdings["stock_code"].notna()].copy()
+        if holdings.empty:
+            return None
+
+        total_weight = float(holdings["weight"].sum())
+        if total_weight < 50:
+            return None
+
+        holdings["yahoo_symbol"] = holdings["stock_code"].map(
+            lambda code: f"{code}.SS" if code.startswith(("5", "6", "9")) else f"{code}.SZ"
+        )
+        yahoo_symbols = holdings["yahoo_symbol"].dropna().unique().tolist()
+        if not yahoo_symbols:
+            return None
+
+        try:
+            batch = yf.download(
+                yahoo_symbols,
+                period="2y",
+                interval="1d",
+                auto_adjust=False,
+                actions=True,
+                progress=False,
+                group_by="ticker",
+                threads=True,
+            )
+        except Exception:
+            return None
+        if batch is None or batch.empty:
+            return None
+
+        yields: dict[str, float] = {}
+        if isinstance(batch.columns, pd.MultiIndex):
+            tickers = batch.columns.get_level_values(0).unique().tolist()
+            for symbol in tickers:
+                try:
+                    symbol_frame = batch[symbol]
+                except Exception:
+                    continue
+                close_series = symbol_frame.get("Close")
+                if close_series is None:
+                    continue
+                close_series = close_series.dropna()
+                if close_series.empty:
+                    continue
+                latest_close = float(close_series.iloc[-1])
+                if latest_close <= 0:
+                    continue
+                dividends = symbol_frame.get("Dividends")
+                if dividends is None:
+                    ttm_dividend = 0.0
+                else:
+                    dividends = dividends.dropna()
+                    cutoff = close_series.index.max() - pd.Timedelta(days=365)
+                    ttm_dividend = float(dividends[dividends.index >= cutoff].sum()) if not dividends.empty else 0.0
+                yields[str(symbol)] = (ttm_dividend / latest_close) * 100 if ttm_dividend > 0 else 0.0
+        else:
+            close_series = batch.get("Close")
+            if close_series is not None:
+                close_series = close_series.dropna()
+                if not close_series.empty:
+                    latest_close = float(close_series.iloc[-1])
+                    dividends = batch.get("Dividends")
+                    dividends = dividends.dropna() if dividends is not None else pd.Series(dtype="float64")
+                    cutoff = close_series.index.max() - pd.Timedelta(days=365)
+                    ttm_dividend = float(dividends[dividends.index >= cutoff].sum()) if not dividends.empty else 0.0
+                    yields[yahoo_symbols[0]] = (ttm_dividend / latest_close) * 100 if latest_close > 0 else 0.0
+
+        if not yields:
+            return None
+
+        holdings["yield_pct"] = holdings["yahoo_symbol"].map(yields).fillna(0.0)
+        covered_weight = float(holdings.loc[holdings["yahoo_symbol"].isin(yields.keys()), "weight"].sum())
+        if covered_weight < total_weight * 0.7:
+            return None
+
+        weighted_yield = float((holdings["weight"] * holdings["yield_pct"]).sum()) / total_weight
+        if weighted_yield <= 0:
+            return None
+
+        current_dividend_yield = pct(weighted_yield)
+        latest_dividend_ttm = price((current_price * current_dividend_yield) / Decimal("100"))
+        return DividendFallbackEstimate(
+            latest_dividend_ttm=latest_dividend_ttm,
+            current_dividend_yield=current_dividend_yield,
+            source=f"akshare-etf-holdings:{quarter_label}",
+        )
+
 
 class YahooHttpProvider:
     def __init__(self) -> None:
@@ -208,7 +352,7 @@ class YahooHttpProvider:
         for year in sorted(set(annual_close_series.index.tolist()) | set(annual_dividend_series.index.tolist())):
             dividend_per_share = price(annual_dividend_series.get(year, 0))
             close_price = price(annual_close_series.get(year, 0))
-            if dividend_per_share <= 0 and close_price <= 0:
+            if dividend_per_share <= 0:
                 continue
             dividend_yield = pct((dividend_per_share / close_price) * 100 if close_price > 0 else 0)
             annual_records.append(
@@ -286,6 +430,16 @@ class MarketDataService:
         subset = valid[-years:] if len(valid) >= years else valid
         return pct(sum(subset) / len(subset))
 
+    @staticmethod
+    def _should_estimate_cn_etf_yield(resolved: ResolvedSymbol, *name_candidates: Optional[str]) -> bool:
+        if resolved.market != "CN":
+            return False
+        code = resolved.normalized_symbol.split(".")[0]
+        if code.startswith(("5", "1")):
+            return True
+        combined_name = " ".join(filter(None, name_candidates)).upper()
+        return "ETF" in combined_name
+
     def refresh_stock(self, db: Session, stock: Stock) -> Stock:
         # 单只持仓刷新时会同时更新名称、价格、TTM 分红和年度股息缓存。
         resolved = ResolvedSymbol(
@@ -300,6 +454,7 @@ class MarketDataService:
         china_name: Optional[str] = None
         china_price: Optional[Decimal] = None
         snapshot_provider = ""
+        dividend_provider = ""
 
         if stock.market == "CN":
             china_name, china_price = self.ak_provider.fetch_name_and_price(resolved)
@@ -333,6 +488,20 @@ class MarketDataService:
             else (yahoo_snapshot.current_dividend_yield if yahoo_snapshot else Decimal("0"))
         )
         annual_dividends = yahoo_snapshot.annual_dividends if yahoo_snapshot else []
+        dividend_provider = snapshot_provider
+
+        if (
+            self._should_estimate_cn_etf_yield(resolved, stock.name, catalog_name, china_name)
+            and latest_dividend_ttm <= 0
+            and current_dividend_yield <= 0
+            and snapshot_price
+            and snapshot_price > 0
+        ):
+            fallback_estimate = self.ak_provider.estimate_etf_dividend_from_holdings(resolved, snapshot_price)
+            if fallback_estimate is not None:
+                latest_dividend_ttm = fallback_estimate.latest_dividend_ttm
+                current_dividend_yield = fallback_estimate.current_dividend_yield
+                dividend_provider = fallback_estimate.source
 
         stock.name = snapshot_name
         stock.last_price = snapshot_price
@@ -341,7 +510,7 @@ class MarketDataService:
         stock.five_year_avg_yield = self._average_yield(annual_dividends, 5)
         stock.ten_year_avg_yield = self._average_yield(annual_dividends, 10)
         stock.sync_status = "ok"
-        stock.sync_message = f"price={ 'akshare' if china_price else snapshot_provider }, dividend={snapshot_provider}"[:255]
+        stock.sync_message = f"price={ 'akshare' if china_price else snapshot_provider }, dividend={dividend_provider or snapshot_provider}"[:255]
         stock.last_synced_at = datetime.now(timezone.utc)
         db.add(stock)
 
