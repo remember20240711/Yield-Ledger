@@ -1,1 +1,1 @@
-"""Yield Ledger backend package."""
+"""息流账本 / Dividend Ledger backend package."""

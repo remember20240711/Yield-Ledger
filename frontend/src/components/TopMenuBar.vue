@@ -13,7 +13,7 @@ const emit = defineEmits<{
 <template>
   <nav class="top-menu">
     <div class="top-menu__brand">
-      <span class="top-menu__eyebrow">Yield Ledger</span>
+      <span class="top-menu__eyebrow">息流账本 / Dividend Ledger</span>
       <strong>息流账本</strong>
     </div>
 

@@ -209,7 +209,7 @@ function openSellDialog(stock: StockRow) {
   addTransactionVisible.value = true;
 }
 
-function backupFilename(ext: "json" | "xlsx", prefix = "yield-ledger-backup") {
+function backupFilename(ext: "json" | "xlsx", prefix = "dividend-ledger-backup") {
   // 导出文件名带时间戳，方便多版本留档。
   const now = new Date();
   const pad = (value: number) => String(value).padStart(2, "0");
@@ -223,7 +223,7 @@ async function handleExportExcel() {
     const url = URL.createObjectURL(data);
     const anchor = document.createElement("a");
     anchor.href = url;
-    anchor.download = backupFilename("xlsx", "yield-ledger-export");
+    anchor.download = backupFilename("xlsx", "dividend-ledger-export");
     anchor.click();
     URL.revokeObjectURL(url);
     ElMessage.success("Excel 导出成功");
@@ -348,7 +348,7 @@ onMounted(() => {
 
     <header class="hero">
       <div>
-        <p class="eyebrow">Yield Ledger</p>
+        <p class="eyebrow">息流账本 / Dividend Ledger</p>
         <h1>息流账本</h1>
         <p class="hero__desc">
           录入买入或卖出交易后立即重算持仓，并同步最新价格与分红缓存。组合汇总默认按

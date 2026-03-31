@@ -1,8 +1,8 @@
-# Yield Ledger
+# 息流账本 / Dividend Ledger
 
 [中文](README.md) | English
 
-Yield Ledger is an open-source dividend research and portfolio tracking tool for long-term cashflow investors, with support for CN (A-share), HK, and US stocks.
+Dividend Ledger is an open-source dividend research and portfolio tracking tool focused on stock dividend investors, with support for CN (A-share), HK, and US stocks.
 
 ## Which Version Is This
 

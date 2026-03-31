@@ -245,7 +245,7 @@ def export_portfolio_excel(db: Session = Depends(get_db)) -> StreamingResponse:
     workbook.save(content)
     content.seek(0)
     ts = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
-    filename = f"yield-ledger-export-{ts}.xlsx"
+    filename = f"dividend-ledger-export-{ts}.xlsx"
     return StreamingResponse(
         content,
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
