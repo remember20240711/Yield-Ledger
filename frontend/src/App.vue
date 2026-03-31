@@ -21,6 +21,7 @@ import {
   fetchSummary,
   fetchTransactionDetail,
   importPortfolioData,
+  refreshAllStocks,
 } from "./api/client";
 import type {
   CreateStockPayload,
@@ -37,6 +38,7 @@ const loading = ref(false);
 const actionLoading = ref(false);
 const detailLoading = ref(false);
 const backupLoading = ref(false);
+const refreshAllLoading = ref(false);
 
 const summary = ref<PortfolioSummary | null>(null);
 const stocks = ref<StockRow[]>([]);
@@ -194,6 +196,19 @@ async function handleDeleteStock(stock: StockRow) {
     ElMessage.error("删除失败");
   } finally {
     actionLoading.value = false;
+  }
+}
+
+async function handleRefreshAll() {
+  refreshAllLoading.value = true;
+  try {
+    await refreshAllStocks();
+    await loadDashboard();
+    ElMessage.success("全部持仓已刷新");
+  } catch {
+    ElMessage.error("刷新全部持仓失败，请稍后重试");
+  } finally {
+    refreshAllLoading.value = false;
   }
 }
 
@@ -373,6 +388,9 @@ onMounted(() => {
         <div class="table-actions">
           <el-button type="primary" :icon="Plus" @click="addStockVisible = true"
             >添加持仓</el-button
+          >
+          <el-button plain :loading="refreshAllLoading" @click="handleRefreshAll"
+            >立即刷新</el-button
           >
           <el-dropdown
             trigger="click"

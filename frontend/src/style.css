@@ -61,9 +61,9 @@ textarea {
 }
 
 .page-shell {
-  max-width: 1320px;
+  width: min(94vw, 1680px);
   margin: 0 auto;
-  padding: 28px 20px 48px;
+  padding: 28px 0 48px;
 }
 
 .top-menu {
@@ -254,7 +254,7 @@ textarea {
   position: relative;
   z-index: 1;
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 12px;
   margin-top: 24px;
 }
@@ -461,7 +461,16 @@ textarea {
 .holding-board__head,
 .holding-row {
   display: grid;
-  grid-template-columns: 1.15fr 1.45fr 0.95fr 1fr 0.95fr 1fr 1.05fr 0.95fr 1.25fr;
+  grid-template-columns:
+    minmax(112px, 1fr)
+    minmax(86px, 0.72fr)
+    minmax(172px, 1.36fr)
+    minmax(104px, 0.84fr)
+    minmax(104px, 0.84fr)
+    minmax(88px, 0.82fr)
+    minmax(104px, 0.88fr)
+    minmax(118px, 0.94fr)
+    minmax(154px, 1.02fr);
   gap: 16px;
   align-items: center;
 }
@@ -517,6 +526,9 @@ textarea {
 .holding-row__name {
   font-weight: 700;
   color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .holding-row__price {
@@ -535,7 +547,7 @@ textarea {
   display: flex;
   align-items: center;
   gap: 8px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
 }
 
 .holding-row__action-line--text {
@@ -1024,7 +1036,7 @@ textarea {
   .summary-hero__metrics,
   .detail-pill-row,
   .drawer-summary {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .panel__toolbar,
@@ -1053,7 +1065,8 @@ textarea {
 
 @media (max-width: 720px) {
   .page-shell {
-    padding: 20px 14px 36px;
+    width: 94vw;
+    padding: 20px 0 36px;
   }
 
   .top-menu {
@@ -1074,6 +1087,10 @@ textarea {
   .panel {
     border-radius: 22px;
     padding: 18px;
+  }
+
+  .summary-hero__metrics {
+    grid-template-columns: 1fr;
   }
 
   .holding-list {

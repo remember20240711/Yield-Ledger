@@ -3,7 +3,6 @@ import { computed } from "vue";
 
 import type { StockRow } from "../types";
 import {
-  formatDateTime,
   formatMoney,
   formatPercent,
   formatShares,
@@ -37,18 +36,6 @@ function displayCurrentPrice(price: number, currency: string): string {
 function holdingWeight(stock: StockRow): string | null {
   if (totalMarketValue.value <= 0 || stock.market_value <= 0) return null;
   return formatPercent((stock.market_value / totalMarketValue.value) * 100);
-}
-
-function syncLabel(stock: StockRow): string {
-  if (stock.sync_status === "pending") return "同步中";
-  if (stock.sync_status === "error") return "同步异常";
-  return formatDateTime(stock.last_synced_at);
-}
-
-function syncStateClass(stock: StockRow): string {
-  if (stock.sync_status === "pending") return "pending";
-  if (stock.sync_status === "error") return "error";
-  return "ready";
 }
 
 function canSell(stock: StockRow): boolean {
@@ -91,12 +78,12 @@ function canSell(stock: StockRow): boolean {
         <div class="holding-board__head">
           <div>股票代码</div>
           <div>股票名称</div>
-          <div>当前股息率</div>
-          <div>预计每年分红</div>
+          <div>股息率</div>
+          <div>上一年分红</div>
+          <div>TTM分红</div>
           <div>当前持仓数量</div>
           <div>价格 / 成本价</div>
           <div>当前持仓市值</div>
-          <div>盈亏</div>
           <div>操作</div>
         </div>
 
@@ -113,12 +100,6 @@ function canSell(stock: StockRow): boolean {
                 {{ marketLabel(stock.market) }}
               </span>
             </div>
-            <div class="holding-row__sync">
-              <span
-                :class="['sync-dot', `sync-dot--${syncStateClass(stock)}`]"
-              />
-              <span>{{ syncLabel(stock) }}</span>
-            </div>
           </div>
 
           <div class="holding-row__cell">
@@ -134,16 +115,30 @@ function canSell(stock: StockRow): boolean {
               class="yield-link"
               @click="emit('view-dividends', stock)"
             >
-              {{ formatPercent(stock.current_dividend_yield) }}
+              {{ formatPercent(stock.latest_full_year_dividend_yield) }}
             </button>
             <div
-              v-if="stock.five_year_avg_yield > 0"
+              v-if="
+                stock.current_dividend_yield > 0 || stock.five_year_avg_yield > 0
+              "
               class="holding-row__submeta"
             >
-              <span class="yield-tag"
-                >5Y {{ formatPercent(stock.five_year_avg_yield) }}</span
-              >
+              <span v-if="stock.current_dividend_yield > 0" class="yield-tag">
+                TTM {{ formatPercent(stock.current_dividend_yield) }}
+              </span>
+              <span v-if="stock.five_year_avg_yield > 0" class="yield-tag">
+                5Y {{ formatPercent(stock.five_year_avg_yield) }}
+              </span>
             </div>
+          </div>
+
+          <div class="holding-row__cell holding-row__cell--number">
+            {{
+              formatMoney(
+                stock.latest_full_year_annual_dividend,
+                stock.base_currency,
+              )
+            }}
           </div>
 
           <div class="holding-row__cell holding-row__cell--number">
@@ -164,14 +159,13 @@ function canSell(stock: StockRow): boolean {
           </div>
 
           <div class="holding-row__cell holding-row__cell--number">
-            {{ formatMoney(stock.market_value, stock.base_currency) }}
-          </div>
-
-          <div
-            class="holding-row__cell holding-row__cell--number"
-            :class="stock.profit_loss >= 0 ? 'profit' : 'loss'"
-          >
-            {{ formatMoney(stock.profit_loss, stock.base_currency) }}
+            <div>{{ formatMoney(stock.market_value, stock.base_currency) }}</div>
+            <div
+              class="holding-row__submeta"
+              :class="stock.profit_loss >= 0 ? 'profit' : 'loss'"
+            >
+              盈亏 {{ formatMoney(stock.profit_loss, stock.base_currency) }}
+            </div>
           </div>
 
           <div class="holding-row__cell">
@@ -237,13 +231,6 @@ function canSell(stock: StockRow): boolean {
               </div>
 
               <div class="holding-card__name">{{ stock.name }}</div>
-
-              <div class="holding-card__sync">
-                <span
-                  :class="['sync-dot', `sync-dot--${syncStateClass(stock)}`]"
-                />
-                <span>{{ syncLabel(stock) }}</span>
-              </div>
             </div>
 
             <div class="holding-card__price-block">
@@ -251,23 +238,23 @@ function canSell(stock: StockRow): boolean {
               <strong>{{
                 displayCurrentPrice(stock.current_price, stock.currency)
               }}</strong>
-              <em :class="stock.profit_loss >= 0 ? 'profit' : 'loss'">
-                {{ formatMoney(stock.profit_loss, stock.base_currency) }}
-              </em>
             </div>
           </div>
 
           <div class="holding-card__metrics">
             <div class="metric-card">
-              <span class="metric-card__label">当前股息率</span>
+              <span class="metric-card__label">股息率</span>
               <div class="metric-card__value">
                 <button
                   type="button"
                   class="yield-link"
                   @click="emit('view-dividends', stock)"
                 >
-                  {{ formatPercent(stock.current_dividend_yield) }}
+                  {{ formatPercent(stock.latest_full_year_dividend_yield) }}
                 </button>
+                <span v-if="stock.current_dividend_yield > 0" class="yield-tag">
+                  TTM {{ formatPercent(stock.current_dividend_yield) }}
+                </span>
                 <span v-if="stock.five_year_avg_yield > 0" class="yield-tag">
                   5Y {{ formatPercent(stock.five_year_avg_yield) }}
                 </span>
@@ -275,10 +262,20 @@ function canSell(stock: StockRow): boolean {
             </div>
 
             <div class="metric-card">
-              <span class="metric-card__label">年预计分红</span>
-              <strong class="metric-card__value-text">
-                {{ formatMoney(stock.annual_dividend, stock.base_currency) }}
-              </strong>
+              <span class="metric-card__label">每年分红(上一年 / TTM)</span>
+              <div class="metric-card__value">
+                <strong class="metric-card__value-text">
+                  {{
+                    formatMoney(
+                      stock.latest_full_year_annual_dividend,
+                      stock.base_currency,
+                    )
+                  }}
+                </strong>
+                <span class="yield-tag">
+                  TTM {{ formatMoney(stock.annual_dividend, stock.base_currency) }}
+                </span>
+              </div>
             </div>
 
             <div class="metric-card">
@@ -290,9 +287,16 @@ function canSell(stock: StockRow): boolean {
 
             <div class="metric-card">
               <span class="metric-card__label">当前持仓市值</span>
-              <strong class="metric-card__value-text">
-                {{ formatMoney(stock.market_value, stock.base_currency) }}
-              </strong>
+              <div class="metric-card__value">
+                <strong class="metric-card__value-text">
+                  {{ formatMoney(stock.market_value, stock.base_currency) }}
+                </strong>
+                <span
+                  :class="['yield-tag', stock.profit_loss >= 0 ? 'profit' : 'loss']"
+                >
+                  盈亏 {{ formatMoney(stock.profit_loss, stock.base_currency) }}
+                </span>
+              </div>
             </div>
           </div>
 

@@ -3,6 +3,8 @@ export interface PortfolioSummary {
   total_market_value: number
   total_annual_dividend: number
   overall_dividend_yield: number
+  total_latest_full_year_dividend: number
+  overall_latest_full_year_yield: number
   base_currency: string
   stock_count: number
 }
@@ -27,6 +29,10 @@ export interface StockRow {
   ten_year_avg_yield: number
   annual_dividend: number
   latest_dividend_ttm: number
+  latest_full_year: number
+  latest_full_year_dividend: number
+  latest_full_year_dividend_yield: number
+  latest_full_year_annual_dividend: number
   latest_buy_price: number
   last_synced_at: string | null
   sync_status: string
@@ -94,6 +100,9 @@ export interface DividendDetail {
   currency: string
   latest_dividend_ttm: number
   current_dividend_yield: number
+  latest_full_year: number
+  latest_full_year_dividend: number
+  latest_full_year_dividend_yield: number
   dividends: DividendRecord[]
   quarterly_prices: QuarterlyPriceRecord[]
 }

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterable
+from datetime import datetime
 from decimal import Decimal
 
 from app.core.config import get_settings
@@ -27,6 +28,19 @@ class ExchangeRateService:
 
 
 exchange_rate_service = ExchangeRateService()
+
+
+def latest_full_year_metrics(stock: Stock, current_price: Decimal) -> dict:
+    # 上一年固定按上一自然年统计，例如 2026 年展示 2025-01-01 至 2025-12-31。
+    target_year = datetime.now().year - 1
+    record = next((item for item in stock.dividends if item.year == target_year), None)
+    dividend_per_share = price(to_decimal(record.dividend_per_share) if record is not None else 0)
+    dividend_yield = pct((dividend_per_share / current_price) * 100 if current_price > 0 else 0)
+    return {
+        "latest_full_year": target_year,
+        "latest_full_year_dividend": as_float(dividend_per_share),
+        "latest_full_year_dividend_yield": as_float(dividend_yield),
+    }
 
 
 def summarize_transactions(transactions: Iterable[Transaction]) -> tuple[Decimal, Decimal, Decimal]:
@@ -72,6 +86,10 @@ def serialize_stock(stock: Stock) -> dict:
     total_cost = money(total_cost_native * fx_rate)
     annual_dividend = money(to_decimal(stock.latest_dividend_ttm) * total_shares * fx_rate)
     profit_loss = money(market_value - total_cost)
+    full_year_metrics = latest_full_year_metrics(stock, current_price)
+    latest_full_year_annual_dividend = money(
+        to_decimal(full_year_metrics["latest_full_year_dividend"]) * total_shares * fx_rate
+    )
     return {
         "id": stock.id,
         "symbol": stock.symbol,
@@ -92,6 +110,10 @@ def serialize_stock(stock: Stock) -> dict:
         "ten_year_avg_yield": as_float(pct(to_decimal(stock.ten_year_avg_yield))),
         "annual_dividend": as_float(annual_dividend),
         "latest_dividend_ttm": as_float(price(to_decimal(stock.latest_dividend_ttm))),
+        "latest_full_year": full_year_metrics["latest_full_year"],
+        "latest_full_year_dividend": full_year_metrics["latest_full_year_dividend"],
+        "latest_full_year_dividend_yield": full_year_metrics["latest_full_year_dividend_yield"],
+        "latest_full_year_annual_dividend": as_float(latest_full_year_annual_dividend),
         "latest_buy_price": as_float(latest_buy_price),
         "last_synced_at": stock.last_synced_at,
         "sync_status": stock.sync_status,
@@ -103,11 +125,17 @@ def serialize_summary(stocks: list[Stock]) -> dict:
     rows = [serialize_stock(stock) for stock in stocks]
     total_market_value = sum(item["market_value"] for item in rows)
     total_annual_dividend = sum(item["annual_dividend"] for item in rows)
+    total_latest_full_year_dividend = sum(item["latest_full_year_annual_dividend"] for item in rows)
     overall_yield = (total_annual_dividend / total_market_value * 100) if total_market_value > 0 else 0
+    overall_latest_full_year_yield = (
+        (total_latest_full_year_dividend / total_market_value * 100) if total_market_value > 0 else 0
+    )
     return {
         "total_market_value": round(total_market_value, 2),
         "total_annual_dividend": round(total_annual_dividend, 2),
         "overall_dividend_yield": round(overall_yield, 2),
+        "total_latest_full_year_dividend": round(total_latest_full_year_dividend, 2),
+        "overall_latest_full_year_yield": round(overall_latest_full_year_yield, 2),
         "base_currency": get_settings().base_currency.upper(),
         "stock_count": len(rows),
     }
@@ -140,6 +168,8 @@ def serialize_transactions(stock: Stock) -> dict:
 
 def serialize_dividends(stock: Stock, quarterly_prices: list[dict] | None = None) -> dict:
     # 股息详情页只读本地缓存，避免每次点开都访问外部接口。
+    current_price = price(to_decimal(stock.last_price))
+    full_year_metrics = latest_full_year_metrics(stock, current_price)
     return {
         "stock_id": stock.id,
         "symbol": stock.normalized_symbol,
@@ -147,6 +177,9 @@ def serialize_dividends(stock: Stock, quarterly_prices: list[dict] | None = None
         "currency": stock.currency,
         "latest_dividend_ttm": as_float(price(to_decimal(stock.latest_dividend_ttm))),
         "current_dividend_yield": as_float(pct(to_decimal(stock.current_dividend_yield))),
+        "latest_full_year": full_year_metrics["latest_full_year"],
+        "latest_full_year_dividend": full_year_metrics["latest_full_year_dividend"],
+        "latest_full_year_dividend_yield": full_year_metrics["latest_full_year_dividend_yield"],
         "dividends": [
             {
                 "year": item.year,

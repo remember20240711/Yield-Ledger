@@ -63,6 +63,10 @@ class StockRowResponse(BaseModel):
     ten_year_avg_yield: float
     annual_dividend: float
     latest_dividend_ttm: float
+    latest_full_year: int
+    latest_full_year_dividend: float
+    latest_full_year_dividend_yield: float
+    latest_full_year_annual_dividend: float
     latest_buy_price: float
     last_synced_at: Optional[datetime]
     sync_status: str
@@ -78,6 +82,8 @@ class PortfolioSummaryResponse(BaseModel):
     total_market_value: float
     total_annual_dividend: float
     overall_dividend_yield: float
+    total_latest_full_year_dividend: float
+    overall_latest_full_year_yield: float
     base_currency: str
     stock_count: int
 
@@ -125,6 +131,9 @@ class DividendDetailResponse(BaseModel):
     currency: str
     latest_dividend_ttm: float
     current_dividend_yield: float
+    latest_full_year: int
+    latest_full_year_dividend: float
+    latest_full_year_dividend_yield: float
     dividends: list[DividendRecord]
     quarterly_prices: list[QuarterlyPriceRecord]
 

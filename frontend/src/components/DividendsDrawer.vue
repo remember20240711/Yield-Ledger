@@ -171,16 +171,28 @@ const priceChartOption = computed(() => ({
               <div class="detail-header-card__sub">{{ detail.symbol }}</div>
             </div>
             <div class="detail-header-card__yield">
-              <span>当前股息率(TTM)</span>
+              <span>上一年股息率({{ detail.latest_full_year }})</span>
               <strong>{{
-                formatPercent(detail.current_dividend_yield)
+                formatPercent(detail.latest_full_year_dividend_yield)
               }}</strong>
             </div>
           </div>
 
           <div class="detail-pill-row">
             <div class="detail-pill">
-              <span>最新每股分红</span>
+              <span>上一年每股分红</span>
+              <strong>{{
+                formatMoney(detail.latest_full_year_dividend, detail.currency)
+              }}</strong>
+            </div>
+            <div class="detail-pill">
+              <span>当前股息率(TTM)</span>
+              <strong>{{
+                formatPercent(detail.current_dividend_yield)
+              }}</strong>
+            </div>
+            <div class="detail-pill">
+              <span>TTM 每股分红</span>
               <strong>{{
                 formatMoney(detail.latest_dividend_ttm, detail.currency)
               }}</strong>
@@ -203,7 +215,7 @@ const priceChartOption = computed(() => ({
         <section v-if="recentDividends.length" class="detail-section">
           <div class="detail-section__head">
             <h3>最近五年股息率</h3>
-            <p>按年度聚合，突出收息稳定性。</p>
+            <p>按自然年聚合，例如 2025 年表示 2025-01-01 至 2025-12-31。</p>
           </div>
           <v-chart
             :option="yieldChartOption"

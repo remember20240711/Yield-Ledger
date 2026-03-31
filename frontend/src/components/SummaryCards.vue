@@ -8,7 +8,6 @@ defineProps<{
 </script>
 
 <template>
-  <!-- 顶部汇总改成 iOS 同款 Hero 卡片，信息集中、层次更清晰。 -->
   <section class="summary-hero">
     <div class="summary-hero__main">
       <div class="summary-hero__eyebrow">Portfolio Overview</div>
@@ -22,8 +21,24 @@ defineProps<{
       <div class="summary-metric">
         <span class="summary-metric__icon">¥</span>
         <div class="summary-metric__body">
+          <strong>{{ formatMoney(summary?.total_latest_full_year_dividend ?? 0, summary?.base_currency ?? 'CNY') }}</strong>
+          <span>上一年分红</span>
+        </div>
+      </div>
+
+      <div class="summary-metric">
+        <span class="summary-metric__icon">¥</span>
+        <div class="summary-metric__body">
           <strong>{{ formatMoney(summary?.total_annual_dividend ?? 0, summary?.base_currency ?? 'CNY') }}</strong>
-          <span>年预计分红</span>
+          <span>TTM分红</span>
+        </div>
+      </div>
+
+      <div class="summary-metric">
+        <span class="summary-metric__icon">%</span>
+        <div class="summary-metric__body">
+          <strong>{{ formatPercent(summary?.overall_latest_full_year_yield ?? 0) }}</strong>
+          <span>上一年股息率</span>
         </div>
       </div>
 
@@ -31,15 +46,7 @@ defineProps<{
         <span class="summary-metric__icon">%</span>
         <div class="summary-metric__body">
           <strong>{{ formatPercent(summary?.overall_dividend_yield ?? 0) }}</strong>
-          <span>组合股息率</span>
-        </div>
-      </div>
-
-      <div class="summary-metric">
-        <span class="summary-metric__icon">#</span>
-        <div class="summary-metric__body">
-          <strong>{{ summary?.stock_count ?? 0 }} 只</strong>
-          <span>持仓数量</span>
+          <span>TTM 组合股息率</span>
         </div>
       </div>
     </div>

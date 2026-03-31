@@ -122,7 +122,9 @@ def health() -> dict:
 @router.get("/summary", response_model=PortfolioSummaryResponse)
 def get_summary(db: Session = Depends(get_db)) -> dict:
     # 顶部汇总卡片直接复用组合序列化逻辑。
-    stocks = db.scalars(select(Stock).options(selectinload(Stock.transactions))).all()
+    stocks = db.scalars(
+        select(Stock).options(selectinload(Stock.transactions), selectinload(Stock.dividends))
+    ).all()
     return serialize_summary(stocks)
 
 
@@ -158,8 +160,11 @@ def export_portfolio(db: Session = Depends(get_db)) -> dict:
 def export_portfolio_excel(db: Session = Depends(get_db)) -> StreamingResponse:
     # Excel 导出用于人工查看/分析，保留多 sheet 结构。
     items = load_portfolio_export_items(db)
-    stocks = db.scalars(select(Stock).options(selectinload(Stock.transactions))).all()
+    stocks = db.scalars(
+        select(Stock).options(selectinload(Stock.transactions), selectinload(Stock.dividends))
+    ).all()
     summary = serialize_summary(stocks)
+    stock_rows = [serialize_stock(stock) for stock in stocks]
 
     workbook = Workbook()
     summary_sheet = workbook.active
@@ -167,8 +172,10 @@ def export_portfolio_excel(db: Session = Depends(get_db)) -> StreamingResponse:
     summary_sheet.append(["导出时间(UTC)", datetime.now(timezone.utc).isoformat()])
     summary_sheet.append(["基准币种", summary["base_currency"]])
     summary_sheet.append(["持仓总市值", summary["total_market_value"]])
-    summary_sheet.append(["每年预计总分红", summary["total_annual_dividend"]])
-    summary_sheet.append(["组合整体股息率(%)", summary["overall_dividend_yield"]])
+    summary_sheet.append(["上一年总分红", summary["total_latest_full_year_dividend"]])
+    summary_sheet.append(["TTM预计总分红", summary["total_annual_dividend"]])
+    summary_sheet.append(["上一年组合股息率(%)", summary["overall_latest_full_year_yield"]])
+    summary_sheet.append(["TTM组合股息率(%)", summary["overall_dividend_yield"]])
     summary_sheet.append(["股票数量", summary["stock_count"]])
 
     stocks_sheet = workbook.create_sheet(title="持仓")
@@ -180,8 +187,11 @@ def export_portfolio_excel(db: Session = Depends(get_db)) -> StreamingResponse:
             "市场",
             "币种",
             "当前价",
+            "上一年",
+            "上一年每股分红",
+            "上一年股息率(%)",
             "TTM每股分红",
-            "当前股息率(%)",
+            "TTM股息率(%)",
             "5年平均股息率(%)",
             "10年平均股息率(%)",
             "同步状态",
@@ -189,7 +199,7 @@ def export_portfolio_excel(db: Session = Depends(get_db)) -> StreamingResponse:
             "同步消息",
         ]
     )
-    for item in items:
+    for item in stock_rows:
         stocks_sheet.append(
             [
                 item["symbol"],
@@ -197,7 +207,10 @@ def export_portfolio_excel(db: Session = Depends(get_db)) -> StreamingResponse:
                 item["name"],
                 item["market"],
                 item["currency"],
-                item["last_price"],
+                item["current_price"],
+                item["latest_full_year"],
+                item["latest_full_year_dividend"],
+                item["latest_full_year_dividend_yield"],
                 item["latest_dividend_ttm"],
                 item["current_dividend_yield"],
                 item["five_year_avg_yield"],
